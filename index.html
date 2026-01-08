@@ -1,85 +1,126 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<title>Red Bull Çark</title>
+  <meta charset="UTF-8" />
+  <title>Red Bull Çark</title>
 
-<!-- 🔴 MOBİLİN KALBİ -->
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- MOBİL İÇİN KRİTİK -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
-<style>
-* { box-sizing: border-box; }
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
 
-body {
-  margin: 0;
-  font-family: Arial, sans-serif;
-  min-height: 100svh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: radial-gradient(circle at top, #1e3c72 0%, #0f2027 40%, #000 100%);
-  overflow: hidden;
-}
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100svh;
+      background: radial-gradient(circle at top, #1e3c72 0%, #0f2027 40%, #000 100%);
+      overflow: hidden;
+      position: relative;
+    }
 
-.container {
-  width: 100%;
-  max-width: 420px;
-  padding: 16px;
-  text-align: center;
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(6px);
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
-}
+    body::before {
+      content: "";
+      position: absolute;
+      inset: -50%;
+      background:
+        radial-gradient(circle at 20% 30%, rgba(30,136,229,0.25), transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(229,57,53,0.25), transparent 45%);
+      animation: bgMove 20s linear infinite;
+      z-index: 0;
+    }
 
-h2 {
-  color: #fff;
-  margin: 8px 0 16px;
-}
+    @keyframes bgMove {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
 
-canvas {
-  width: 90vw;
-  max-width: 340px;
-  aspect-ratio: 1 / 1;
-  border-radius: 50%;
-  margin: auto;
-  display: block;
-}
+    .container {
+      position: relative;
+      z-index: 1;
+      width: 92vw;
+      max-width: 420px;
+      background: rgba(255,255,255,0.08);
+      backdrop-filter: blur(6px);
+      border-radius: 18px;
+      padding: 18px 16px 24px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
 
-button {
-  width: 100%;
-  margin-top: 16px;
-  padding: 14px;
-  font-size: 18px;
-  font-weight: bold;
-  border-radius: 10px;
-  border: none;
-  background: #ff9800;
-  color: #fff;
-}
+    h2 {
+      margin: 6px 0 14px;
+      color: #fff;
+      font-size: 22px;
+    }
 
-button.disabled {
-  background: #555;
-  opacity: 0.7;
-}
+    canvas {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 50%;
+      background: radial-gradient(circle at top,
+        rgba(229,57,53,0.25),
+        rgba(30,136,229,0.25),
+        rgba(0,0,0,0.15));
+    }
 
-#result {
-  margin-top: 16px;
-  font-size: 22px;
-  font-weight: bold;
-  color: #fff;
-}
+    canvas.spinning {
+      filter: drop-shadow(0 0 22px rgba(30,136,229,0.9)) brightness(1.1);
+    }
 
-.note {
-  display: block;
-  font-size: 14px;
-  opacity: 0.8;
-  margin-top: 6px;
-}
-</style>
+    button {
+      width: 100%;
+      margin-top: 16px;
+      padding: 14px;
+      font-size: 18px;
+      border: none;
+      border-radius: 10px;
+      background: #ff9800;
+      color: #fff;
+      cursor: pointer;
+    }
+
+    button.disabled {
+      background: #555;
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+
+    #result {
+      margin-top: 18px;
+      font-size: 26px;
+      font-weight: bold;
+      color: #fff;
+    }
+
+    #result .note {
+      display: block;
+      margin-top: 6px;
+      font-size: 14px;
+      opacity: 0.85;
+      font-weight: normal;
+    }
+
+    #result.jackpot {
+      color: #fdd835;
+      text-shadow: 0 0 14px rgba(253,216,53,0.9);
+      animation: jackpot 1s infinite alternate;
+    }
+
+    @keyframes jackpot {
+      from { transform: scale(1); }
+      to { transform: scale(1.1); }
+    }
+  </style>
 </head>
-
 <body>
+
 <div class="container">
   <h2>⚡ RED BULL ÇARK ⚡</h2>
   <canvas id="wheel"></canvas>
@@ -92,20 +133,21 @@ button.disabled {
 
 const DAILY_KEY = "rb_spin_date";
 const CODE_KEY = "rb_reward_code";
+
 const options = ["%20", "%10", "%30", "1+1 RED BULL", "%20", "%5"];
 
 const canvas = document.getElementById("wheel");
 const ctx = canvas.getContext("2d");
+
 let angle = 0;
 
-/* 🔧 MOBİL CANVAS SENKRONU */
 function resizeCanvas() {
-  const size = Math.min(window.innerWidth * 0.9, 340);
+  const size = canvas.clientWidth;
   canvas.width = size;
   canvas.height = size;
+  drawWheel();
 }
 window.addEventListener("resize", resizeCanvas);
-resizeCanvas();
 
 function todayKey() {
   const now = new Date();
@@ -130,27 +172,27 @@ function drawWheel() {
 
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  options.forEach((text, i) => {
+  options.forEach((value, i) => {
     ctx.beginPath();
     ctx.moveTo(center, center);
-    ctx.arc(center, center, radius, slice * i + angle, slice * (i + 1) + angle);
+    ctx.arc(center, center, radius, slice*i + angle, slice*(i+1) + angle);
 
     ctx.fillStyle =
-      text === "%5" ? "#e53935" :
-      text === "%10" ? "#1e88e5" :
-      text === "%30" ? "#8e24aa" :
-      text === "1+1 RED BULL" ? "#fdd835" :
+      value === "%5" ? "#e53935" :
+      value === "%10" ? "#1e88e5" :
+      value === "%30" ? "#8e24aa" :
+      value === "1+1 RED BULL" ? "#fdd835" :
       "#43a047";
 
     ctx.fill();
 
     ctx.save();
     ctx.translate(center, center);
-    ctx.rotate(slice * i + slice / 2 + angle);
-    ctx.fillStyle = "#333";
-    ctx.font = "bold 16px Arial";
+    ctx.rotate(slice*i + slice/2 + angle);
     ctx.textAlign = "center";
-    ctx.fillText(text, radius * 0.6, 0);
+    ctx.fillStyle = "#222";
+    ctx.font = "bold 16px Arial";
+    ctx.fillText(value, radius * 0.62, 0);
     ctx.restore();
   });
 }
@@ -160,54 +202,49 @@ function spin() {
 
   const resultEl = document.getElementById("result");
   resultEl.innerHTML = "";
+  resultEl.className = "";
+  canvas.classList.add("spinning");
 
   const weighted = [
-    { label: "%5", w: 5 },
-    { label: "%10", w: 25 },
-    { label: "%20", w: 20 },
-    { label: "%20", w: 20 },
-    { label: "%30", w: 15 },
-    { label: "1+1 RED BULL", w: 15 }
+    {label:"%5",w:5},{label:"%10",w:25},{label:"%20",w:20},
+    {label:"%20",w:20},{label:"%30",w:15},{label:"1+1 RED BULL",w:15}
   ];
 
-  let r = Math.random() * 100;
+  let r = Math.random()*100;
   let selected = weighted[0].label;
-  for (const o of weighted) {
-    if (r < o.w) { selected = o.label; break; }
-    r -= o.w;
-  }
+  for (const o of weighted) { if (r<o.w) break; r-=o.w; selected=o.label; }
 
-  const targetIndex = options.findIndex(o => o === selected);
-  const slice = (2 * Math.PI) / options.length;
-  const spinAngle = 5 * 2 * Math.PI + (options.length - targetIndex) * slice;
+  const index = options.indexOf(selected);
+  const slice = (2*Math.PI)/options.length;
+  const target = 5*2*Math.PI + (options.length-index)*slice;
 
-  let start = null;
-  function animate(ts) {
-    if (!start) start = ts;
-    const t = Math.min((ts - start) / 3000, 1);
-    angle = spinAngle * (1 - Math.pow(1 - t, 3));
+  let start=null;
+  function anim(t){
+    if(!start) start=t;
+    const p=Math.min((t-start)/3000,1);
+    angle=target*(1-Math.pow(1-p,3));
     drawWheel();
-
-    if (t < 1) requestAnimationFrame(animate);
+    if(p<1) requestAnimationFrame(anim);
     else {
-      localStorage.setItem(DAILY_KEY, todayKey());
+      canvas.classList.remove("spinning");
+      localStorage.setItem(DAILY_KEY,todayKey());
       checkDailySpin();
 
-      let code = sessionStorage.getItem(CODE_KEY);
-      if (!code) {
-        code = Math.floor(100000 + Math.random() * 900000);
-        sessionStorage.setItem(CODE_KEY, code);
-      }
+      let code=sessionStorage.getItem(CODE_KEY);
+      if(!code){code=Math.floor(100000+Math.random()*900000);sessionStorage.setItem(CODE_KEY,code);}
 
-      resultEl.innerHTML = KAZANDINIZ: ${selected}<br>KOD: ${code}<span class="note">Kasiyere gösteriniz</span>;
+      resultEl.innerHTML=KAZANDINIZ: ${selected}<br>KOD: ${code}<span class="note">Bu kodu satıcıya gösteriniz</span>;
+      if(selected==="1+1 RED BULL") resultEl.classList.add("jackpot");
     }
   }
-  requestAnimationFrame(animate);
+  requestAnimationFrame(anim);
 }
 
 document.getElementById("spinBtn").addEventListener("click", spin);
+
+resizeCanvas();
 checkDailySpin();
-drawWheel();
 </script>
+
 </body>
 </html>
