@@ -265,7 +265,7 @@ window.addEventListener("DOMContentLoaded", () => {
           sessionStorage.setItem(CODE_KEY, code);
         }
 
-        resultEl.innerHTML = KAZANDINIZ: ${selected}<br>KOD: ${code}<span class="note">Bu kodu satıcıya gösteriniz</span>;
+        resultEl.innerHTML = `KAZANDINIZ: ${selected}<br>KOD: ${code}<span class="note">Bu kodu satıcıya gösteriniz</span>`;
         resultEl.classList.add("animate");
         if (selected === "1+1 RED BULL") resultEl.classList.add("jackpot");
       }
